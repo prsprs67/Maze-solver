@@ -1,0 +1,6 @@
+{
+  "name": "MazeVerse",
+  "description": "Interactive Maze Generator and Solver demonstrating Breadth-First Search (BFS), Depth-First Search (DFS), and foundational data structures with real-time algorithmic visualization, side-by-side comparison, and complete standalone C source code.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
