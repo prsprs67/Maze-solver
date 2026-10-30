@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
-    "build": "vite build",
+    "build:wasm": "mkdir -p public/wasm && emcc -O3 -s WASM=1 -s STANDALONE_WASM=1 --no-entry -I c c/maze.c c/queue.c c/stack.c c/bfs.c c/dfs.c c/wasm_bridge.c -o public/wasm/maze.wasm",
+    "build:c-cli": "gcc -Wall -Wextra -O2 -std=c99 -I c c/maze.c c/queue.c c/stack.c c/bfs.c c/dfs.c c/main.c -o maze_cli",
+    "build": "npm run build:wasm && vite build",
     "preview": "vite preview",
-    "clean": "rm -rf dist server.js",
+    "clean": "rm -rf dist server.js maze_cli",
     "lint": "tsc --noEmit"
   },
   "dependencies": {

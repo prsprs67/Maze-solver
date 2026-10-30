@@ -9,11 +9,13 @@ interface HeaderProps {
   solverStatus: SolverStatus;
   onStartSolve: () => void;
   onPauseResume: () => void;
+  wasmReady?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   activeTab,
   onTabChange,
+  wasmReady = true,
 }) => {
   return (
     <header className="border-b border-rose-200/70 bg-white/90 backdrop-blur-xs sticky top-0 z-40 shadow-xs">
@@ -58,12 +60,13 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Header Right Indicator */}
         <div className="hidden sm:flex items-center gap-3 text-xs text-slate-500">
-          <span className="font-mono text-[11px] text-slate-500 flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-[11px] font-mono text-emerald-800">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-            <span>Space: Start/Pause</span>
-            <span className="text-rose-300">·</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-            <span>R: Reset</span>
+            <span>{wasmReady ? 'C Core: Active (WASM)' : 'Loading C Core...'}</span>
+          </div>
+          <span className="text-rose-200">·</span>
+          <span className="font-mono text-[11px] text-slate-500">
+            Space: Start/Pause
           </span>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { CellType, Point } from '../types/maze';
+import { solveBFSWithC, solveDFSWithC, isWasmReady } from '../wasm/wasmBridge';
 import { solveBFS, solveDFS } from '../algorithms/mazeSolvers';
 import { Trophy, CheckCircle2 } from 'lucide-react';
 
@@ -17,9 +18,14 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
   const rows = grid.length;
   const cols = grid[0]?.length || 0;
 
-  // Compute both solutions instantly for side-by-side comparison
-  const bfsResult = useMemo(() => solveBFS(grid, start, end), [grid, start, end]);
-  const dfsResult = useMemo(() => solveDFS(grid, start, end), [grid, start, end]);
+  // Compute both solutions using C compiled into WebAssembly
+  const bfsResult = useMemo(() => {
+    return isWasmReady() ? solveBFSWithC(grid, start, end) : solveBFS(grid, start, end);
+  }, [grid, start, end]);
+
+  const dfsResult = useMemo(() => {
+    return isWasmReady() ? solveDFSWithC(grid, start, end) : solveDFS(grid, start, end);
+  }, [grid, start, end]);
 
   const bfsPathSet = useMemo(() => new Set(bfsResult.path.map((p) => `${p.r},${p.c}`)), [bfsResult]);
   const dfsPathSet = useMemo(() => new Set(dfsResult.path.map((p) => `${p.r},${p.c}`)), [dfsResult]);

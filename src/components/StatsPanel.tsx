@@ -82,6 +82,11 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({
           </div>
 
           <div>
+            <span className="text-slate-500 font-sans mr-1.5">Engine:</span>
+            <span className="text-emerald-700 font-semibold">C (WASM)</span>
+          </div>
+
+          <div>
             <span className="text-slate-500 font-sans mr-1.5">Grid:</span>
             <span className="text-slate-700">{rows}×{cols}</span>
           </div>

@@ -1,0 +1,7 @@
+# Ensure compiled WebAssembly binaries are treated as binary artifacts
+*.wasm binary
+public/wasm/*.wasm binary linguist-vendored
+
+# Ensure C language files are highlighted and recognized by GitHub Linguist
+c/*.c linguist-detectable=true
+c/*.h linguist-detectable=true

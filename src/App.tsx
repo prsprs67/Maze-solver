@@ -21,6 +21,14 @@ import {
   getPresetMaze,
   sanitizeGrid,
 } from './algorithms/mazeGenerators';
+import {
+  initWasm,
+  isWasmReady,
+  solveBFSWithC,
+  solveDFSWithC,
+  generateRandomDFSWithC,
+  generateDensityMazeWithC,
+} from './wasm/wasmBridge';
 import { solveBFS, solveDFS } from './algorithms/mazeSolvers';
 
 interface SolveContext {
@@ -57,6 +65,23 @@ export default function App() {
   // Solver State Machine: 'idle' | 'running' | 'paused' | 'completed' | 'no-path'
   const [solverStatus, setSolverStatus] = useState<SolverStatus>('idle');
   const [solveResult, setSolveResult] = useState<SolveResult | null>(null);
+  const [wasmReady, setWasmReady] = useState<boolean>(false);
+
+  // Initialize WebAssembly C core on mount
+  useEffect(() => {
+    initWasm().then(ready => {
+      setWasmReady(ready);
+      if (ready) {
+        // Regenerate maze using compiled C Randomized DFS algorithm
+        try {
+          const cGrid = generateRandomDFSWithC(gridSize.rows, gridSize.cols, start, end);
+          setGrid(cGrid);
+        } catch (e) {
+          console.warn('Initial C maze generation notice:', e);
+        }
+      }
+    });
+  }, []);
 
   // Display Sets for rendering visited and solution path
   const [visitedSet, setVisitedSet] = useState<Set<string>>(new Set());
@@ -180,11 +205,11 @@ export default function App() {
     solveIdRef.current++;
     const thisSolveId = solveIdRef.current;
 
-    // 1. Compute algorithmic solution
+    // 1. Compute algorithmic solution using compiled C WebAssembly core
     const cleanGrid = sanitizeGrid(grid, start, end);
-    const result = algorithm === 'bfs'
-      ? solveBFS(cleanGrid, start, end)
-      : solveDFS(cleanGrid, start, end);
+    const result = isWasmReady()
+      ? (algorithm === 'bfs' ? solveBFSWithC(cleanGrid, start, end) : solveDFSWithC(cleanGrid, start, end))
+      : (algorithm === 'bfs' ? solveBFS(cleanGrid, start, end) : solveDFS(cleanGrid, start, end));
 
     setSolveResult(result);
 
@@ -302,21 +327,27 @@ export default function App() {
     setGridSize(newSize);
     setStart(newStart);
     setEnd(newEnd);
-    const newGrid = generateRandomizedDFS(newSize.rows, newSize.cols, newStart, newEnd);
+    const newGrid = isWasmReady()
+      ? generateRandomDFSWithC(newSize.rows, newSize.cols, newStart, newEnd)
+      : generateRandomizedDFS(newSize.rows, newSize.cols, newStart, newEnd);
     setGrid(newGrid);
   };
 
-  // Generate Perfect Maze (DFS Backtracker)
+  // Generate Perfect Maze (DFS Backtracker in C)
   const handleGenerateRandomMaze = () => {
     resetSolutionState();
-    const newGrid = generateRandomizedDFS(gridSize.rows, gridSize.cols, start, end);
+    const newGrid = isWasmReady()
+      ? generateRandomDFSWithC(gridSize.rows, gridSize.cols, start, end)
+      : generateRandomizedDFS(gridSize.rows, gridSize.cols, start, end);
     setGrid(newGrid);
   };
 
-  // Generate Random Wall Density Maze
+  // Generate Random Wall Density Maze (in C)
   const handleGenerateDensityMaze = () => {
     resetSolutionState();
-    const newGrid = generateDensityMaze(gridSize.rows, gridSize.cols, wallDensity, start, end);
+    const newGrid = isWasmReady()
+      ? generateDensityMazeWithC(gridSize.rows, gridSize.cols, wallDensity, start, end)
+      : generateDensityMaze(gridSize.rows, gridSize.cols, wallDensity, start, end);
     setGrid(newGrid);
   };
 
@@ -463,6 +494,7 @@ export default function App() {
         solverStatus={solverStatus}
         onStartSolve={startSolving}
         onPauseResume={handlePauseResume}
+        wasmReady={wasmReady}
       />
 
       {/* Main Content Area */}
